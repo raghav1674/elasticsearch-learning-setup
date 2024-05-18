@@ -1,0 +1,168 @@
+Pre-requisite:
+=============
+
+In the local cluster, all nodes with the master node role must also have the remote_cluster_client role. 
+The local cluster must also have at least one node with both a data role and the remote_cluster_client role. 
+Individual tasks for coordinating replication scale based on the number of data nodes with the remote_cluster_client role in the local cluster.
+
+
+Configure ccr:
+==============
+
+Local:
+
+PUT /_cluster/settings
+{
+  "persistent" : {
+    "cluster" : {
+      "remote" : {
+        "dcelastic-cluster" : {    
+          "seeds" : [
+            "dchot0.example.local:9300" 
+          ]
+        }
+      }
+    }
+  }
+}
+
+GET /_remote/info
+
+Remote:
+
+POST /_security/role/remote-replication
+{
+  "cluster": [
+    "read_ccr"
+  ],
+  "indices": [
+    {
+      "names": [
+        "leader-index-name"
+      ],
+      "privileges": [
+        "monitor",
+        "read"
+      ]
+    }
+  ]
+}
+
+Local:
+
+POST /_security/role/remote-replication
+{
+  "cluster": [
+    "manage_ccr"
+  ],
+  "indices": [
+    {
+      "names": [
+        "follower-index-name"
+      ],
+      "privileges": [
+        "monitor",
+        "read",
+        "write",
+        "manage_follow_index"
+      ]
+    }
+  ]
+}
+
+POST /_security/user/cross-cluster-user
+{
+  "password" : "l0ng-r4nd0m-p@ssw0rd",
+  "roles" : [ "remote-replication" ]
+}
+
+PUT /my-index-data/_ccr/follow?wait_for_active_shards=1
+{
+  "remote_cluster" : "dcelastic-cluster",
+  "leader_index" : "my-index-data"
+}
+
+PUT /_ccr/auto_follow/sample
+{
+  "remote_cluster" : "dcelastic-cluster",
+  "leader_index_patterns" :
+  [
+    "sample-*"
+  ],
+  "follow_index_pattern" : "{{leader_index}}" 
+}
+
+
+On dr day:
+==========
+
+Local:
+
+POST /my-index-data/_ccr/pause_follow
+POST /my-index-data/_close
+POST /my-index-data/_ccr/unfollow
+POST /my-index-data/_open
+
+Remote:
+
+PUT /_cluster/settings
+{
+  "persistent" : {
+    "cluster" : {
+      "remote" : {
+        "drelastic-cluster" : {    
+          "seeds" : [
+            "drhot0.example.local:9300" 
+          ]
+        }
+      }
+    }
+  }
+}
+
+DELETE my-index-data
+
+PUT /my-index-data/_ccr/follow?wait_for_active_shards=1
+{
+  "remote_cluster" : "drelastic-cluster",
+  "leader_index" : "my-index-data"
+}
+
+
+Switch Back:
+============
+
+Make sure the data is replicated on dc
+
+Remote:
+POST /my-index-data/_ccr/pause_follow
+POST /my-index-data/_close
+POST /my-index-data/_ccr/unfollow
+POST /my-index-data/_open
+
+PUT /_cluster/settings
+{
+  "persistent" : {
+    "cluster" : {
+      "remote" : {
+        "drelastic-cluster" : {
+          "seeds" : null
+        }
+      }
+    }
+  }
+}
+
+Local:
+
+DELETE /my-index-data
+
+PUT /my-index-data/_ccr/follow?wait_for_active_shards=1
+{
+  "remote_cluster" : "dcelastic-cluster",
+  "leader_index" : "my-index-data"
+}
+
+Troubleshooting:
+GET /my-index-data/_ccr/stats
+GET /<index>/_ccr/info

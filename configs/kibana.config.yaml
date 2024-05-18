@@ -1,0 +1,23 @@
+server.port: 5601
+server.host: "${NODE_IP}"
+server.ssl.enabled: true
+server.ssl.certificate: /etc/kibana/certs/elasticsearch.crt
+server.ssl.key: /etc/kibana/certs/elasticsearch.key
+
+elasticsearch.ssl.certificateAuthorities: /etc/kibana/certs/ca.crt
+elasticsearch.hosts: ${ELASTICSEARCH_HOSTS}
+elasticsearch.serviceAccountToken: "${KIBANA_TOKEN}"
+
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: json
+  root:
+    appenders:
+      - default
+      - file
+
+pid.file: /run/kibana/kibana.pid

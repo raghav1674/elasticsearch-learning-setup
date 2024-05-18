@@ -1,0 +1,3 @@
+certs/*
+.vagrant
+hosts

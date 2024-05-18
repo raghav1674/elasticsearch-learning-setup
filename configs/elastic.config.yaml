@@ -1,0 +1,23 @@
+cluster.name: ${CLUSTER_NAME}
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+bootstrap.memory_lock: false
+network.host: ${NODE_IP}
+node.roles: ${NODE_ROLES}
+http.port: 9200
+discovery.seed_hosts: ${MASTER_SEED_HOSTS}
+xpack.security.enabled: true
+xpack.security.http.ssl:
+  enabled: true
+  key: /etc/elasticsearch/certs/elasticsearch.key
+  certificate: /etc/elasticsearch/certs/elasticsearch.crt
+  certificate_authorities: /etc/elasticsearch/certs/ca.crt
+xpack.security.transport.ssl:
+  enabled: true
+  verification_mode: certificate
+  key: /etc/elasticsearch/certs/elasticsearch.key
+  certificate: /etc/elasticsearch/certs/elasticsearch.crt
+  certificate_authorities: /etc/elasticsearch/certs/ca.crt
+cluster.initial_master_nodes: ${MASTER_SEED_HOSTS}
+http.host: ${NODE_IP}
+transport.host: ${NODE_IP}

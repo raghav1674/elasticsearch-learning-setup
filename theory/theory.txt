@@ -1,0 +1,18 @@
+https://www.elastic.co/guide/en/elasticsearch/reference/current/remote-clusters-cert.html
+https://www.elastic.co/guide/en/elasticsearch/reference/current/remote-clusters.html#add-remote-clusters
+
+There are two security mechanisms and two connection modes.
+
+
+security modes:
+  - Api key
+  - Certificate based - authentication is local but the role info is passed to another cluster and access is given
+
+connection mode:
+  - sniff:
+      - not only master
+      - version same
+  - proxy:
+      - one proxy to multiple
+
+
